@@ -1,0 +1,76 @@
+---
+title: "Presentation"
+output: html_document
+date: "2023-11-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+if (!require('tidyverse')) {
+  install.packages('tidyverse')
+}
+
+if (!require('readxl')) {
+  install.packages('readxl')
+}
+
+library(tidyverse)
+library(readxl)
+```
+
+```{r}
+data <- read_excel("benchmarking.xlsx")
+time <- data |>
+  select('size', 'genetic_time', 'recursion_time') |>
+  rename(
+    'genetic' = 'genetic_time',
+    'recursion' = 'recursion_time'
+  )
+genetic_quality <- data |>
+  select('size', 'quality')
+
+time <- time |>
+  pivot_longer(
+    cols = c('genetic', 'recursion'),
+    names_to = 'method',
+    values_to = 'duration'
+  ) |>
+  filter(
+    duration < 50
+  )
+```
+
+```{r}
+time |>
+  ggplot(aes(x = size, y = duration, color = method)) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Elapsed Time vs Input Size on 0/1 Knapsack",
+    x = "Input Size",
+    y = "Elapsed Time (s)"
+  ) +
+  scale_x_continuous(breaks = seq(min(time$size), max(time$size), by = 5))
+```
+
+```{r}
+genetic_quality |>
+  ggplot(aes(x = size, y = quality)) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Quality vs Input Size on 0/1 Knapsack",
+    x = "Input Size",
+    y = "Quality"
+  ) +
+  scale_x_continuous(breaks = seq(min(time$size), max(time$size), by = 5))
+```
